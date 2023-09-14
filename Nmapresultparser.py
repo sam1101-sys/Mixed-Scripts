@@ -25,8 +25,12 @@ def parse_nmap_gnmap(nmap_file, csv_writer):
         if len(parts) >= 4:
             ip_address = parts[1]
             port_info = parts[3].split('/')
-            port_num = port_info[0]
-            service = port_info[2]
+            if len(port_info) >= 3:
+                port_num = port_info[0]
+                service = port_info[2]
+            else:
+                port_num = port_info[0]
+                service = 'Unknown'
             csv_writer.writerow([ip_address, port_num, service])
 
 def main():
