@@ -35,7 +35,7 @@ def main():
     parser = argparse.ArgumentParser(description="Parse Nmap scan results and consolidate them into a CSV file.")
     
     # Add command-line arguments
-    parser.add_argument("input_directory", help="Directory containing Nmap scan results")
+    parser.add_argument("input_file", help="Nmap scan result file")
     parser.add_argument("output_csv", help="Output CSV file to store consolidated results")
 
     # Parse command-line arguments
@@ -46,15 +46,11 @@ def main():
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['IP Address', 'Port', 'Service'])
 
-        # Loop through files in the input directory
-        for filename in os.listdir(args.input_directory):
-            input_file = os.path.join(args.input_directory, filename)
+        if args.input_file.endswith('.xml'):
+            parse_xml(args.input_file, csv_writer)
 
-            if input_file.endswith('.xml'):
-                parse_xml(input_file, csv_writer)
-
-            elif input_file.endswith('.nmap') or input_file.endswith('.gnmap'):
-                parse_nmap_gnmap(input_file, csv_writer)
+        elif args.input_file.endswith('.nmap') or args.input_file.endswith('.gnmap'):
+            parse_nmap_gnmap(args.input_file, csv_writer)
 
     print(f"Parsing completed. Results are saved in '{args.output_csv}'.")
 
