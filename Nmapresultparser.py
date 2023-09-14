@@ -1,4 +1,3 @@
-import os
 import xml.etree.ElementTree as ET
 import csv
 import argparse
@@ -32,16 +31,15 @@ def parse_nmap_gnmap(nmap_file, csv_writer):
 
 def main():
     # Create argument parser
-    parser = argparse.ArgumentParser(description="Parse Nmap scan results and consolidate them into a CSV file.")
+    parser = argparse.ArgumentParser(description="Parse a single Nmap scan result file and save the results to a CSV file.")
     
     # Add command-line arguments
-    parser.add_argument("input_file", help="Nmap scan result file")
-    parser.add_argument("output_csv", help="Output CSV file to store consolidated results")
+    parser.add_argument("input_file", help="Nmap scan result file (in .nmap, .gnmap, or .xml format)")
+    parser.add_argument("output_csv", help="Output CSV file to store the results")
 
     # Parse command-line arguments
     args = parser.parse_args()
 
-    # Create a single CSV file to consolidate results
     with open(args.output_csv, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['IP Address', 'Port', 'Service'])
