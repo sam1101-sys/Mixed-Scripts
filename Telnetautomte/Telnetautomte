@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Initialize the hosts file path with a default value
+hosts_file="hosts.txt"
+
+# Function to display script usage
+function show_usage {
+  echo "Usage: $0 [-H hosts_file]"
+  echo "  -H: Specify the path to the hosts file (default: hosts.txt)"
+  exit 1
+}
+
+# Parse command-line arguments
+while getopts "H:" opt; do
+  case $opt in
+    H)
+      hosts_file="$OPTARG"
+      ;;
+    \?)
+      show_usage
+      ;;
+  esac
+done
+
+# Check if the specified hosts file exists
+if [ ! -f "$hosts_file" ]; then
+  echo "Hosts file $hosts_file not found."
+  exit 1
+fi
+
+# Read the list of hosts from the specified hosts file into an array
+mapfile -t hosts < "$hosts_file"
+
+# Loop through each host
+for host in "${hosts[@]}"; do
+  # Use expect to automate the Telnet login process
+  expect -c "
+    spawn telnet $host
+    expect \"login: \"
+    send \"admin\r\"
+    expect {
+      \"Password:\" {
+        send \"\r\"
+        # Print a message indicating that the login was successful
+        puts \"Login successful for host: $host\"
+        interact
+      }
+      timeout {
+        # Print a message indicating that the login failed
+        puts \"Login failed for host: $host\"
+        exit 1
+      }
+    }
+  "
+done
