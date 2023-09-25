@@ -1,3 +1,4 @@
+import argparse
 import telnetlib
 import socket
 
@@ -29,25 +30,37 @@ def check_smtp_capabilities(host, hostname):
         # Indicate that this host did not work
         return None
 
-# Read the list of hostnames from a file
-hosts_file = "hosts.txt"
-with open(hosts_file, "r") as file:
-    hosts = [line.strip() for line in file]
+def main():
+    # Create a command-line argument parser
+    parser = argparse.ArgumentParser(description="SMTP Relay Checker")
 
-# Hostname to announce in the EHLO command
-my_hostname = "myhostname.com"
+    # Add an argument for specifying the hosts file
+    parser.add_argument("-H", "--hosts-file", required=True, help="Path to the hosts file")
 
-# List to store the IP addresses of working hosts
-working_ips = []
+    # Parse the command-line arguments
+    args = parser.parse_args()
 
-# Loop through each host and check SMTP capabilities
-for host in hosts:
-    result = check_smtp_capabilities(host, my_hostname)
-    if result:
-        working_ips.append(result)
-    print("----------------------------------------------")
+    # Hostname to announce in the EHLO command
+    my_hostname = "myhostname.com"
 
-# Print the list of working IP addresses
-print("Working IP Addresses:")
-for ip in working_ips:
-    print(ip)
+    # List to store the IP addresses of working hosts
+    working_ips = []
+
+    # Read the list of hostnames from the specified file
+    with open(args.hosts_file, "r") as file:
+        hosts = [line.strip() for line in file]
+
+    # Loop through each host and check SMTP capabilities
+    for host in hosts:
+        result = check_smtp_capabilities(host, my_hostname)
+        if result:
+            working_ips.append(result)
+        print("----------------------------------------------")
+
+    # Print the list of working IP addresses
+    print("Working IP Addresses:")
+    for ip in working_ips:
+        print(ip)
+
+if __name__ == "__main__":
+    main()
