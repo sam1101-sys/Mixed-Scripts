@@ -15,19 +15,30 @@ def check_service(host, port, username, password, blank_password):
             print(f"Received banner for {ip_address} ({host}): {banner.strip()}")
 
             # Check if authentication details are provided
-            if username and (password or blank_password):
-                if not blank_password:
-                    print("Authentication details provided:")
-                    print(f"Username: {username}")
-                    print(f"Password: {password}")
-                else:
-                    print("Authentication details provided:")
-                    print(f"Username: {username}")
-                    print("Blank password indicated.")
-            elif username and not (password or blank_password):
-                print("Username provided, but no password specified.")
+            if username:
+                tn.read_until(b"login: ", timeout=5)
+                tn.write(username.encode("utf-8") + b"\r\n")
 
-            return ip_address
+                # Check for password prompt
+                response = tn.read_until(b"Password: ", timeout=5).decode("utf-8")
+
+                # Check if a blank password is indicated
+                if blank_password:
+                    tn.write(b"\r\n")
+                    response += tn.read_until(b"\r\n", timeout=5).decode("utf-8")
+
+                # Check if a password is provided
+                elif password:
+                    tn.write(password.encode("utf-8") + b"\r\n")
+                    response += tn.read_until(b"\r\n", timeout=5).decode("utf-8")
+
+                # Check for a successful login message
+                if "Last login:" in response:
+                    print(f"Login successful for {ip_address} ({host}) as {username}")
+                else:
+                    print(f"Login failed for {ip_address} ({host}) as {username}")
+            else:
+                print("Username not provided. Skipping login check.")
 
     except Exception as e:
         print(f"Failed to connect to {ip_address} ({host}) on port {port}: {str(e)}")
@@ -50,7 +61,7 @@ def main():
     description = """
     This script checks the availability of a service on one or more hosts using Telnet.
     You can specify multiple hosts and optional authentication details.
-    If no port is provided, the script uses port 80 as the default.
+    If no port is provided, the script uses port 23 as the default.
     If the --host option is used, hostnames will be read from the specified file.
     """
     parser.description = description
@@ -67,16 +78,8 @@ def main():
             host_lines = host_file.readlines()
             # Loop through each host and check the specified service
             for host in [line.strip() for line in host_lines]:
-                result = check_service(host, 80, args.username, args.password, args.blank_password)
-                if result:
-                    working_ips.append(result)
+                check_service(host, 23, args.username, args.password, args.blank_password)
                 print("----------------------------------------------")
-
-    # Print the list of working IP addresses
-    if working_ips:
-        print("\nWorking IP Addresses:")
-        for ip in working_ips:
-            print(ip)
 
 if __name__ == "__main__":
     main()
