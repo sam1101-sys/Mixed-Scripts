@@ -34,10 +34,6 @@ def main():
     # Create a command-line argument parser with improved help message
     parser = argparse.ArgumentParser(description="Service Checker", formatter_class=argparse.RawTextHelpFormatter)
 
-    # Add arguments for specifying hostname(s) and port
-    parser.add_argument("hosts", nargs="+", help="Hostname(s) to check")
-    parser.add_argument("-p", "--port", type=int, default=80, help="Port to use for the check (default: 80)")
-
     # Add optional arguments for username and password
     parser.add_argument("-u", "--username", help="Username for authentication")
     parser.add_argument("-P", "--password", help="Password for authentication")
@@ -53,6 +49,7 @@ def main():
     This script checks the availability of a service on one or more hosts using Telnet.
     You can specify multiple hosts and optional authentication details.
     If no port is provided, the script uses port 80 as the default.
+    If the --host option is used, hostnames will be read from the specified file.
     """
     parser.description = description
 
@@ -63,13 +60,10 @@ def main():
     if args.host:
         with open(args.host, "r") as host_file:
             host_lines = host_file.readlines()
-            # Append the hosts from the file to the hosts list
-            args.hosts.extend([line.strip() for line in host_lines])
-
-    # Loop through each host and check the specified service
-    for host in args.hosts:
-        check_service(host, args.port, args.username, args.password, args.blank_password)
-        print("----------------------------------------------")
+            # Loop through each host and check the specified service
+            for host in [line.strip() for line in host_lines]:
+                check_service(host, 80, args.username, args.password, args.blank_password)
+                print("----------------------------------------------")
 
 if __name__ == "__main__":
     main()
