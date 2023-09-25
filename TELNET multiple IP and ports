@@ -27,6 +27,8 @@ def check_service(host, port, username, password, blank_password):
             elif username and not (password or blank_password):
                 print("Username provided, but no password specified.")
 
+            return ip_address
+
     except Exception as e:
         print(f"Failed to connect to {ip_address} ({host}) on port {port}: {str(e)}")
 
@@ -56,14 +58,25 @@ def main():
     # Parse the command-line arguments
     args = parser.parse_args()
 
+    # List to store the IP addresses of working hosts
+    working_ips = []
+
     # If a hosts file is provided, read the hosts from the file
     if args.host:
         with open(args.host, "r") as host_file:
             host_lines = host_file.readlines()
             # Loop through each host and check the specified service
             for host in [line.strip() for line in host_lines]:
-                check_service(host, 80, args.username, args.password, args.blank_password)
+                result = check_service(host, 80, args.username, args.password, args.blank_password)
+                if result:
+                    working_ips.append(result)
                 print("----------------------------------------------")
+
+    # Print the list of working IP addresses
+    if working_ips:
+        print("\nWorking IP Addresses:")
+        for ip in working_ips:
+            print(ip)
 
 if __name__ == "__main__":
     main()
