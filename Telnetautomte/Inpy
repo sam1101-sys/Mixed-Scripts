@@ -1,0 +1,57 @@
+import telnetlib
+
+# Initialize the hosts file path with a default value
+hosts_file = "hosts.txt"
+
+# Function to display script usage
+def show_usage():
+    print("Usage: telnet_script.py [-H hosts_file]")
+    print("  -H: Specify the path to the hosts file (default: hosts.txt)")
+    exit(1)
+
+# Parse command-line arguments
+import sys
+import getopt
+
+try:
+    opts, _ = getopt.getopt(sys.argv[1:], "H:")
+except getopt.GetoptError:
+    show_usage()
+
+for opt, arg in opts:
+    if opt == "-H":
+        hosts_file = arg
+    else:
+        show_usage()
+
+# Check if the specified hosts file exists
+import os
+
+if not os.path.isfile(hosts_file):
+    print(f"Hosts file {hosts_file} not found.")
+    exit(1)
+
+# Function to attempt Telnet login
+def telnet_login(hostname):
+    try:
+        tn = telnetlib.Telnet(hostname)
+        tn.read_until(b"login: ")
+        tn.write(b"admin\r\n")
+        tn.read_until(b"Password: ")
+        tn.write(b"\r\n")
+        result = tn.expect([b"Login successful", b"Login failed"], timeout=5)
+        tn.close()
+        if result[0] == 0:
+            print(f"Login successful for host: {hostname}")
+        else:
+            print(f"Login failed for host: {hostname}")
+    except Exception as e:
+        print(f"Error connecting to host {hostname}: {str(e)}")
+
+# Read the list of hosts from the specified hosts file
+with open(hosts_file, "r") as file:
+    hosts = file.read().splitlines()
+
+# Loop through each host
+for host in hosts:
+    telnet_login(host)
