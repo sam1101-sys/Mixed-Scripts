@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Input file containing a list of IP addresses or hostnames (one per line)
-input_file="host_list.txt"
+# Check if an input file was provided as an argument
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 <input_file>"
+    exit 1
+fi
+
+input_file="$1"
 
 # Name of the output file
 output_file="nfs_share_results.txt"
