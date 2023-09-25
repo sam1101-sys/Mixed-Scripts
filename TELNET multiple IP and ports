@@ -31,19 +31,27 @@ def check_service(host, port, username, password, blank_password):
         print(f"Failed to connect to {ip_address} ({host}) on port {port}: {str(e)}")
 
 def main():
-    # Create a command-line argument parser
-    parser = argparse.ArgumentParser(description="Service Checker")
+    # Create a command-line argument parser with improved help message
+    parser = argparse.ArgumentParser(description="Service Checker", formatter_class=argparse.RawTextHelpFormatter)
 
     # Add arguments for specifying hostname(s) and port
     parser.add_argument("hosts", nargs="+", help="Hostname(s) to check")
-    parser.add_argument("port", type=int, help="Port to use for the check")
+    parser.add_argument("-p", "--port", type=int, default=80, help="Port to use for the check (default: 80)")
 
     # Add optional arguments for username and password
     parser.add_argument("-u", "--username", help="Username for authentication")
-    parser.add_argument("-p", "--password", help="Password for authentication")
+    parser.add_argument("-P", "--password", help="Password for authentication")
 
     # Add an optional switch for blank password
     parser.add_argument("-b", "--blank-password", action="store_true", help="Indicate a blank password")
+
+    # Update the script's description
+    description = """
+    This script checks the availability of a service on one or more hosts using Telnet.
+    You can specify multiple hosts and optional authentication details.
+    If no port is provided, the script uses port 80 as the default.
+    """
+    parser.description = description
 
     # Parse the command-line arguments
     args = parser.parse_args()
