@@ -2,11 +2,11 @@ import argparse
 import telnetlib
 import socket
 
-def interact_with_host(host, port, username, password, blank_password):
+def check_service(host, port, username, password, blank_password):
     try:
         # Resolve the hostname to an IP address
         ip_address = socket.gethostbyname(host)
-        print(f"Connecting to {ip_address} ({host}) on port {port} using Telnet")
+        print(f"Checking service on {ip_address} ({host}) using port {port}")
 
         # Connect to the specified service
         with telnetlib.Telnet(host, port) as tn:
@@ -38,18 +38,14 @@ def interact_with_host(host, port, username, password, blank_password):
                 else:
                     print(f"Login failed for {ip_address} ({host}) as {username}")
             else:
-                print("Username not provided. Skipping login.")
-
-            # Start an interactive session
-            print("Interactive Telnet session. Press Ctrl+] and then type 'quit' to exit.")
-            tn.interact()
+                print("Username not provided. Skipping login check.")
 
     except Exception as e:
         print(f"Failed to connect to {ip_address} ({host}) on port {port}: {str(e)}")
 
 def main():
     # Create a command-line argument parser with improved help message
-    parser = argparse.ArgumentParser(description="Interactive Telnet Client", formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description="Service Checker", formatter_class=argparse.RawTextHelpFormatter)
 
     # Add optional arguments for username and password
     parser.add_argument("-u", "--username", help="Username for authentication")
@@ -58,25 +54,35 @@ def main():
     # Add an optional switch for blank password
     parser.add_argument("-b", "--blank-password", action="store_true", help="Indicate a blank password")
 
-    # Add an optional argument for specifying the host
-    parser.add_argument("--host", required=True, help="Hostname or IP address to connect to")
+    # Add an optional argument for specifying the hosts file
+    parser.add_argument("--host", help="Path to the hosts file")
 
     # Add an optional argument for specifying the port
     parser.add_argument("-p", "--port", type=int, default=23, help="Port to use for Telnet (default: 23)")
 
     # Update the script's description
     description = """
-    This script allows you to initiate an interactive Telnet session to a remote host.
-    You can specify the hostname or IP address to connect to, and optional authentication details.
+    This script checks the availability of a service on one or more hosts using Telnet.
+    You can specify multiple hosts and optional authentication details.
     If no port is provided, the script uses port 23 as the default.
+    If the --host option is used, hostnames will be read from the specified file.
     """
     parser.description = description
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
-    # Initiate an interactive Telnet session
-    interact_with_host(args.host, args.port, args.username, args.password, args.blank_password)
+    # List to store the IP addresses of working hosts
+    working_ips = []
+
+    # If a hosts file is provided, read the hosts from the file
+    if args.host:
+        with open(args.host, "r") as host_file:
+            host_lines = host_file.readlines()
+            # Loop through each host and check the specified service
+            for host in [line.strip() for line in host_lines]:
+                check_service(host, args.port, args.username, args.password, args.blank_password)
+                print("----------------------------------------------")
 
 if __name__ == "__main__":
     main()
