@@ -1,0 +1,52 @@
+import os
+import argparse
+
+# Function to find unique IPs and create output file
+def find_unique_ips_and_save(file_path):
+    # Read the text file and extract IP addresses
+    with open(file_path, 'r') as file:
+        ips = [line.strip() for line in file if line.strip()]
+
+    # Find unique IPs
+    unique_ips = list(set(ips))
+
+    # Get the base filename (without the path and extension)
+    base_filename = os.path.splitext(os.path.basename(file_path))[0]
+
+    # Create an output file with the base filename + "_unique_ips.txt"
+    output_filename = f'{base_filename}_unique_ips.txt'
+
+    # Save unique IPs to the output file
+    with open(output_filename, 'w') as output_file:
+        output_file.write('\n'.join(unique_ips))
+
+    print(f'Unique IPs from {file_path}: {unique_ips}')
+    print(f'Unique IPs saved in: {output_filename}')
+
+# Function to process files
+def process_file(file_path):
+    find_unique_ips_and_save(file_path)
+
+# Function to process folders
+def process_folder(folder_path):
+    # List all files in the folder
+    files = os.listdir(folder_path)
+
+    # Process each file in the folder
+    for file_name in files:
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            process_file(file_path)
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description='Process text files for common and unique IPs.')
+parser.add_argument('-f', '--file_or_folder', required=True, help='Specify a filename or folder path')
+args = parser.parse_args()
+
+# Check if the provided input is a file or a folder
+if os.path.isfile(args.file_or_folder):
+    process_file(args.file_or_folder)
+elif os.path.isdir(args.file_or_folder):
+    process_folder(args.file_or_folder)
+else:
+    print("Invalid input. Please provide a valid file path or folder path.")
