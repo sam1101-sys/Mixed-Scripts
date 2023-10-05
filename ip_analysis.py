@@ -31,7 +31,7 @@ common_ips = {}
 for ip in set().union(*server_ips.values()):
     accessible_from = [server for server, ips in server_ips.items() if ip in ips]
     if len(accessible_from) > 1:
-        accessible_from.sort()
+        accessible_from.sort()  # Sort the server names to get consistent combinations
         common_ips[ip] = accessible_from
 
 # Calculate total IPs from input files
@@ -40,6 +40,10 @@ total_ips = sum(len(ips) for ips in server_ips.values())
 # Calculate total unique IPs with duplicates removed
 all_ips = set(ip for ips in server_ips.values() for ip in ips)
 total_unique_ips = len(all_ips)
+
+# Print the count of common IPs for server combinations
+for ip_combination, ips in common_ips.items():
+    print(f"Common IPs for {', '.join(ips)}: {len(ips)}")
 
 # Output results in the specified format
 if args.output == 'csv':
@@ -52,24 +56,14 @@ if args.output == 'csv':
             for ip in ips:
                 writer.writerow({'Server': server, 'IP': ip})
 
-        for ip, servers in common_ips.items():
-            writer.writerow({'Server': ', '.join(servers), 'IP': ip})
-
 else:
     # Save results to separate output files in text format
     for server, ips in unique_ips.items():
         with open(f'{server}_unique_ips.txt', 'w') as file:
             file.write('\n'.join(ips))
 
-    for ip, servers in common_ips.items():
-        common_servers = ''.join(s for s in servers)
-        with open(f'common_{common_servers}_ips.txt', 'w') as file:
-            file.write(f"IP {ip} is accessible from servers: {', '.join(servers)}\n")
-
 # Print the results...
 print("Total IPs from input files:", total_ips)
 print("Total Unique IPs (with duplicates removed):", total_unique_ips)
 for server, ips in unique_ips.items():
     print(f"Server {server} IPs saved to {server}_unique_ips.txt:", len(ips))
-
-print("Common IPs count:", len(common_ips))
