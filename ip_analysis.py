@@ -58,9 +58,17 @@ else:
         with open(f'{server}_unique_ips.txt', 'w') as file:
             file.write('\n'.join(ips))
 
-# Print the results...
-for ip_combination, ips in common_ips.items():
-    print(f"Common IPs for {', '.join(ips)}: {len(ips)}")
+# Print the total count of common IPs for each combination of servers
+common_counts = {}
+for ips in common_ips.values():
+    key = ', '.join(ips)
+    if key in common_counts:
+        common_counts[key] += 1
+    else:
+        common_counts[key] = 1
+
+for key, count in common_counts.items():
+    print(f"Common IPs for {key}: {count}")
 
 print("Total IPs from input files:", total_ips)
 print("Total Unique IPs (with duplicates removed):", total_unique_ips)
