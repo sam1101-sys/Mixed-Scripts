@@ -1,5 +1,5 @@
 import argparse
-import csv  # Import the CSV module for CSV output
+import csv
 
 # Define a function to parse command-line arguments
 def parse_args():
@@ -31,6 +31,7 @@ common_ips = {}
 for ip in set().union(*server_ips.values()):
     accessible_from = [server for server, ips in server_ips.items() if ip in ips]
     if len(accessible_from) > 1:
+        accessible_from.sort()
         common_ips[ip] = accessible_from
 
 # Calculate total IPs from input files
@@ -60,8 +61,9 @@ else:
         with open(f'{server}_unique_ips.txt', 'w') as file:
             file.write('\n'.join(ips))
 
-    with open('common_ips.txt', 'w') as file:
-        for ip, servers in common_ips.items():
+    for ip, servers in common_ips.items():
+        common_servers = ''.join(s for s in servers)
+        with open(f'common_{common_servers}_ips.txt', 'w') as file:
             file.write(f"IP {ip} is accessible from servers: {', '.join(servers)}\n")
 
 # Print the results...
