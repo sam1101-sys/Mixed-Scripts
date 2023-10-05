@@ -52,24 +52,28 @@ if args.output == 'csv':
             for ip in ips:
                 writer.writerow({'Server': server, 'IP': ip})
 
+    # Save common IPs to a CSV file
+    with open('common_ips.csv', 'w', newline='') as csvfile:
+        fieldnames = ['IP', 'Servers']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for ip, servers in common_ips.items():
+            writer.writerow({'IP': ip, 'Servers': ', '.join(servers)})
+
 else:
     # Save results to separate output files in text format
     for server, ips in unique_ips.items():
         with open(f'{server}_unique_ips.txt', 'w') as file:
             file.write('\n'.join(ips))
 
-# Print the total count of common IPs for each combination of servers
-common_counts = {}
-for ips in common_ips.values():
-    key = ', '.join(ips)
-    if key in common_counts:
-        common_counts[key] += 1
-    else:
-        common_counts[key] = 1
+    # Save common IPs to separate text files
+    for ip, servers in common_ips.items():
+        common_servers = ' & '.join(s for s in servers)
+        with open(f'common_{common_servers}_ips.txt', 'w') as file:
+            file.write(f"{ip}\n")
 
-for key, count in common_counts.items():
-    print(f"Common IPs for {key}: {count}")
-
+# Print the results...
 print("Total IPs from input files:", total_ips)
 print("Total Unique IPs (with duplicates removed):", total_unique_ips)
 for server, ips in unique_ips.items():
