@@ -1,11 +1,10 @@
 import argparse
-import csv
+from collections import defaultdict
 
 # Define a function to parse command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="IP Analysis Script")
     parser.add_argument('-f', '--files', nargs='+', help='List of input files for each server', required=True)
-    parser.add_argument('-o', '--output', help='Output format (default: txt)', choices=['txt', 'csv'], default='txt')
     return parser.parse_args()
 
 # Get the command-line arguments
@@ -31,7 +30,6 @@ common_ips = {}
 for ip in set().union(*server_ips.values()):
     accessible_from = [server for server, ips in server_ips.items() if ip in ips]
     if len(accessible_from) > 1:
-        accessible_from.sort()  # Sort the server names to get consistent combinations
         common_ips[ip] = accessible_from
 
 # Calculate total IPs from input files
@@ -41,40 +39,26 @@ total_ips = sum(len(ips) for ips in server_ips.values())
 all_ips = set(ip for ips in server_ips.values() for ip in ips)
 total_unique_ips = len(all_ips)
 
-# Output results in the specified format
-if args.output == 'csv':
-    with open('ip_analysis.csv', 'w', newline='') as csvfile:
-        fieldnames = ['Server', 'IP']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+# Create a dictionary to categorize common IPs by the combination of servers
+categorized_common_ips = defaultdict(list)
+for ip, accessible_from in common_ips.items():
+    categorized_common_ips[' & '.join(sorted(accessible_from))].append(ip)
 
-        for server, ips in unique_ips.items():
-            for ip in ips:
-                writer.writerow({'Server': server, 'IP': ip})
+# Save results to separate output files
+for server, ips in unique_ips.items():
+    with open(f'{server}_unique_ips.txt', 'w') as file:
+        file.write('\n'.join(ips))
 
-    # Save common IPs to a CSV file
-    with open('common_ips.csv', 'w', newline='') as csvfile:
-        fieldnames = ['IP', 'Servers']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-
-        for ip, servers in common_ips.items():
-            writer.writerow({'IP': ip, 'Servers': ', '.join(servers)})
-
-else:
-    # Save results to separate output files in text format
-    for server, ips in unique_ips.items():
-        with open(f'{server}_unique_ips.txt', 'w') as file:
-            file.write('\n'.join(ips))
-
-    # Save common IPs to separate text files
-    for ip, servers in common_ips.items():
-        common_servers = ' & '.join(s for s in servers)
-        with open(f'common_{common_servers}_ips.txt', 'w') as file:
-            file.write(f"{ip}\n")
+# Create separate files for common IPs categorized by server combinations
+for server_combination, ips in categorized_common_ips.items():
+    with open(f'CommonIn{server_combination}.txt', 'w') as file:
+        for ip in ips:
+            file.write(f"IP {ip} is accessible from servers: {server_combination}\n")
 
 # Print the results...
 print("Total IPs from input files:", total_ips)
 print("Total Unique IPs (with duplicates removed):", total_unique_ips)
 for server, ips in unique_ips.items():
     print(f"Server {server} IPs saved to {server}_unique_ips.txt:", len(ips))
+
+print("Common IPs count:", len(common_ips))
