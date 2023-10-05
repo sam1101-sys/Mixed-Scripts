@@ -41,10 +41,6 @@ total_ips = sum(len(ips) for ips in server_ips.values())
 all_ips = set(ip for ips in server_ips.values() for ip in ips)
 total_unique_ips = len(all_ips)
 
-# Print the count of common IPs for server combinations
-for ip_combination, ips in common_ips.items():
-    print(f"Common IPs for {', '.join(ips)}: {len(ips)}")
-
 # Output results in the specified format
 if args.output == 'csv':
     with open('ip_analysis.csv', 'w', newline='') as csvfile:
@@ -63,6 +59,9 @@ else:
             file.write('\n'.join(ips))
 
 # Print the results...
+for ip_combination, ips in common_ips.items():
+    print(f"Common IPs for {', '.join(ips)}: {len(ips)}")
+
 print("Total IPs from input files:", total_ips)
 print("Total Unique IPs (with duplicates removed):", total_unique_ips)
 for server, ips in unique_ips.items():
