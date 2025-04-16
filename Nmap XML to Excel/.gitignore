@@ -1,0 +1,15 @@
+# Python
+
+\*.pyc **pycache**/ \*.pyo \*.pyd .Python env/ venv/ ENV/
+
+# Excel output files
+
+\*.xlsx
+
+# IDE and editor files
+
+.vscode/ .idea/ \*.sublime-project \*.sublime-workspace
+
+# System files
+
+.DS_Store Thumbs.db
