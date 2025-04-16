@@ -1,5 +1,5 @@
 # Ignore the .Hidden folder
-.Hidden/
+Hidden/
 
 # Optionally ignore other hidden folders
 .*/
