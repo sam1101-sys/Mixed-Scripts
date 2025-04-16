@@ -1,143 +1,190 @@
 # Mixed-Scripts
 
-A collection of Python and Bash scripts for network scanning, analysis, and security auditing. These tools automate tasks such as IP range expansion, NFS share discovery, FTP anonymous login checks, and Nmap result processing, making them ideal for network administrators and security professionals.
+A collection of Python and Bash scripts for network scanning, analysis, security auditing, and visualization. These tools automate tasks such as IP range processing, service discovery, vulnerability checks, database connectivity testing, web screenshot capture, and scan result formatting, designed for network administrators and security professionals.
 
 ## Scripts Overview
 
-The repository includes the following scripts:
-
 1. **CIDR_2_IP.py**:
-   - Converts CIDR ranges (e.g., `192.168.1.0/24`) or IP ranges (e.g., `192.168.1.1-192.168.1.10`) from a file into a list of IP addresses.
-   - Supports IPv4 and IPv6, with deduplication and output file options.
-   - Useful for generating IP lists for network scans.
+   - Converts CIDR ranges (e.g., `192.168.1.0/24`) or IP ranges (e.g., `192.168.1.1-192.168.1.10`) into a list of IPs.
+   - Supports IPv4/IPv6, deduplication, and output files.
 
 2. **nmap_xml_to_excel.py**:
-   - Parses Nmap XML output and generates an Excel file with two sheets:
-     - **Live Hosts**: IP addresses and hostnames.
-     - **Port Details**: IP, port, protocol, service, product, version, and status.
-   - Supports excluding specific ports and customizable output.
+   - Parses Nmap XML into an Excel file with:
+     - **Live Hosts**: IPs and hostnames.
+     - **Port Details**: IP, port, protocol, service, product, version, status.
+   - Supports port exclusion.
 
 3. **nfs_automater.sh**:
-   - Checks for NFS shares on a list of IPs or hostnames using `showmount`.
-   - Outputs detailed share information and a list of hosts with shares to files.
-   - Integrates with other scripts for network auditing.
+   - Detects NFS shares on IPs/hostnames using `showmount`.
+   - Outputs share details and hosts with shares.
 
 4. **Pythonanonymouslogin.py**:
-   - Tests FTP servers for anonymous login (username: `anonymous`, password: `anonymous`) on a list of IPs.
-   - Supports non-standard ports, verbose error logging, and output files.
-   - Useful for identifying insecure FTP configurations.
+   - Tests FTP servers for anonymous login vulnerabilities.
+   - Supports custom ports, verbose logging, and output files.
+
+5. **extractIP.py**:
+   - Extracts host IPs from CIDR ranges, excluding network/broadcast addresses.
+   - Processes multiple files with output file option.
+
+6. **overlap.py**:
+   - Finds overlapping IP ranges (CIDR or IP ranges) between two files.
+   - Optimizes scan range selection.
+
+7. **overlap_multiple.py**:
+   - Extends `overlap.py` for multiple files.
+   - Identifies overlaps across datasets.
+
+8. **query.py**:
+   - Converts CIDR ranges into query format (e.g., `asset.ipv4 BETWEEN x AND y`).
+   - Aids IP filtering for external tools.
+
+9. **check_psql_connections.sh**:
+   - Tests PostgreSQL connectivity on IPs using `psql`.
+   - Reports connection success/failure with customizable username and port.
+
+10. **screenshot.sh**:
+    - Captures screenshots of web pages at IP:port using headless Chrome.
+    - Saves PNGs in a timestamped directory, with protocol detection (http/https).
 
 ## Features
 
-- **Automation**: Streamlines network scanning and analysis tasks.
-- **Integration**: Scripts work together for a complete workflow (e.g., IP generation → scanning → analysis).
-- **Portability**: Minimal dependencies, using Python standard libraries and common Linux tools.
-- **Error Handling**: Robust validation and error reporting.
-- **Open Source**: Licensed under the MIT License for free use and modification.
+- **Automation**: Simplifies IP management, service checks, and visualization.
+- **Integration**: Scripts form a cohesive network auditing workflow.
+- **Portability**: Uses Python standard libraries and common Linux tools.
+- **Error Handling**: Robust validation and reporting.
+- **Open Source**: MIT License.
 
 ## Prerequisites
 
-- **Python 3.3+**: Required for `CIDR_2_IP.py`, `nmap_xml_to_excel.py`, and `Pythonanonymouslogin.py`.
+- **Python 3.3+**: For Python scripts.
 - **Python Packages** (for `nmap_xml_to_excel.py`):
-  - `pandas`
-  - `openpyxl`
-  - Install with:
+  - `pandas`, `openpyxl`
+  - Install:
     ```bash
     pip install pandas openpyxl
     ```
-- **Bash**: Required for `nfs_automater.sh`.
-- **showmount**: Required for `nfs_automater.sh` (part of `nfs-common` or `nfs-utils`).
-  - Install on Debian/Ubuntu:
+- **Bash**: For `nfs_automater.sh`, `check_psql_connections.sh`, `screenshot.sh`.
+- **showmount**: For `nfs_automater.sh`.
+  - Install (Debian/Ubuntu):
     ```bash
     sudo apt update
     sudo apt install nfs-common
     ```
-  - Install on Red Hat/CentOS:
+- **psql**: For `check_psql_connections.sh`.
+  - Install (Debian/Ubuntu):
     ```bash
-    sudo yum install nfs-utils
+    sudo apt install postgresql-client
+    ```
+- **google-chrome**: For `screenshot.sh`.
+  - Install (Debian/Ubuntu):
+    ```bash
+    sudo apt install google-chrome-stable
     ```
 
 ## Installation
 
-1. Clone the repository:
+```bash
+git clone https://github.com/sam1101-sys/Mixed-Scripts.git
+cd Mixed-Scripts
+pip install pandas openpyxl
+chmod +x *.sh
+```
 
-   ```bash
-   git clone https://github.com/sam1101-sys/Mixed-Scripts.git
-   cd Mixed-Scripts
-   ```
-
-2. Install Python dependencies (for `nmap_xml_to_excel.py`):
-
-   ```bash
-   pip install pandas openpyxl
-   ```
-
-3. Make Bash scripts executable:
-
-   ```bash
-   chmod +x nfs_automater.sh
-   ```
-
-4. Verify prerequisites:
-
-   ```bash
-   python3 --version
-   showmount --version
-   ```
+Verify:
+```bash
+python3 --version
+showmount --version
+psql --version
+google-chrome --version
+```
 
 ## Usage
 
-Each script has its own usage instructions, summarized below. See individual READMEs in subdirectories for details.
-
-### 1. CIDR_2_IP.py
-Generate IP addresses from CIDR or IP ranges:
-
+### CIDR_2_IP.py
 ```bash
 echo "192.168.1.0/24" > ranges.txt
 python CIDR_2_IP.py -f ranges.txt -o ips.txt
 ```
 
-### 2. nmap_xml_to_excel.py
-Convert Nmap XML to Excel:
-
+### nmap_xml_to_excel.py
 ```bash
 nmap -sV -oX scan.xml 192.168.1.0/24
 python nmap_xml_to_excel.py scan.xml --output report.xlsx
 ```
 
-### 3. nfs_automater.sh
-Check for NFS shares:
-
+### nfs_automater.sh
 ```bash
 echo -e "192.168.1.1\n192.168.1.2" > hosts.txt
 ./nfs_automater.sh hosts.txt
 ```
 
-### 4. Pythonanonymouslogin.py
-Test FTP anonymous logins:
-
+### Pythonanonymouslogin.py
 ```bash
 echo -e "192.168.1.1\n192.168.1.2" > ips.txt
 python Pythonanonymouslogin.py -f ips.txt -o ftp_results.txt
 ```
 
-### Example Workflow
-Combine scripts for a comprehensive network audit:
-
+### extractIP.py
 ```bash
-# Generate IP list
+echo "192.168.1.0/30" > ranges.txt
+python extractIP.py -f ranges.txt -o hosts.txt
+```
+
+### overlap.py
+```bash
+echo "192.168.1.0/30" > file1.txt
+echo "192.168.1.0-192.168.1.5" > file2.txt
+python overlap.py -f file1.txt file2.txt
+```
+
+### overlap_multiple.py
+```bash
+echo "192.168.2.0/24" > file3.txt
+python overlap_multiple.py -f file1.txt file2.txt file3.txt
+```
+
+### query.py
+```bash
+python query.py -f ranges.txt
+```
+
+### check_psql_connections.sh
+```bash
+echo -e "192.168.1.1\n192.168.1.2" > ips.txt
+./check_psql_connections.sh -h ips.txt -o psql_results.txt
+```
+
+### screenshot.sh
+```bash
+echo -e "192.168.1.1:80\n192.168.1.2:443" > urls.txt
+./screenshot.sh -f urls.txt
+```
+
+### Example Workflow
+```bash
+# Generate IPs
 echo "192.168.1.0/24" > ranges.txt
-python CIDR_2_IP.py -f ranges.txt -o ips.txt
+python extractIP.py -f ranges.txt -o hosts.txt
+python CIDR_2_IP.py -f ranges.txt -o all_ips.txt
 
-# Check NFS shares
-./nfs_automater.sh ips.txt
+# Check overlaps
+python overlap_multiple.py -f ranges.txt other_ranges.txt
 
-# Scan for FTP servers
-nmap -iL ips.txt -p 21 -sV -oX ftp_scan.xml
-python nmap_xml_to_excel.py ftp_scan.xml --output ftp_report.xlsx
+# Generate query
+python query.py -f ranges.txt > query.txt
 
-# Test FTP anonymous logins (use IPs with open port 21)
-python Pythonanonymouslogin.py -f ftp_ips.txt -o ftp_results.txt
+# Scan services
+./nfs_automater.sh hosts.txt
+python Pythonanonymouslogin.py -f hosts.txt -o ftp_results.txt
+./check_psql_connections.sh -h hosts.txt -o psql_results.txt
+
+# Capture web screenshots
+sed 's/$/:80/' hosts.txt > urls.txt
+./screenshot.sh -f urls.txt
+
+# Analyze with Nmap
+nmap -iL hosts.txt -sV -oX scan.xml
+python nmap_xml_to_excel.py scan.xml --output report.xlsx
 ```
 
 ## Directory Structure
@@ -146,6 +193,9 @@ python Pythonanonymouslogin.py -f ftp_ips.txt -o ftp_results.txt
 Mixed-Scripts/
 ├── CIDR_2_IP/
 │   ├── CIDR_2_IP.py
+│   ├── README.md
+├── extractIP/
+│   ├── extractIP.py
 │   ├── README.md
 ├── ftp_anonymous_login/
 │   ├── Pythonanonymouslogin.py
@@ -156,62 +206,59 @@ Mixed-Scripts/
 ├── nfs_automater/
 │   ├── nfs_automater.sh
 │   ├── README.md
+├── overlap/
+│   ├── overlap.py
+│   ├── README.md
+├── overlap_multiple/
+│   ├── overlap_multiple.py
+│   ├── README.md
+├── query/
+│   ├── query.py
+│   ├── README.md
+├── check_psql_connections/
+│   ├── check_psql_connections.sh
+│   ├── README.md
+├── screenshot/
+│   ├── screenshot.sh
+│   ├── README.md
 ├── LICENSE
 ├── README.md
 ```
 
 ## Debugging
 
-If scripts produce unexpected results:
-
-- **Verify Inputs**:
-  ```bash
-  cat <input_file>
-  ```
-  Ensure files contain valid IPs, hostnames, or Nmap XML.
-
+- **Verify Inputs**: `cat <input_file>`
 - **Check Dependencies**:
   ```bash
   python3 --version
   pip show pandas openpyxl
   showmount --version
+  psql --version
+  google-chrome --version
   ```
-
-- **Test Connectivity**:
-  ```bash
-  ping -c 1 192.168.1.1
-  nmap -p 21 192.168.1.1
-  showmount -e 192.168.1.1
-  ```
-
+- **Test Connectivity**: `ping -c 1 192.168.1.1`
 - **Verbose Mode** (for `Pythonanonymouslogin.py`):
   ```bash
   python Pythonanonymouslogin.py -f ips.txt -v
   ```
-
-- **Check Output Files**:
-  ```bash
-  cat <output_file>
-  ```
+- **Check Outputs**: `cat <output_file>`, `ls screenshots_*`
 
 ## Contributing
 
-Contributions are welcome! Please submit a pull request or open an issue for bug reports, feature requests, or improvements. Follow these steps:
-
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/your-feature`).
-3. Commit changes (`git commit -m "Add your feature"`).
-4. Push to the branch (`git push origin feature/your-feature`).
+Submit pull requests or issues:
+1. Fork the repo.
+2. Create a branch (`git checkout -b feature/your-feature`).
+3. Commit (`git commit -m "Add feature"`).
+4. Push (`git push origin feature/your-feature`).
 5. Open a pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Licensed under the MIT License. See [LICENSE](LICENSE).
 
 Copyright (c) 2025 Shamya
 
 ## Acknowledgments
 
-- Built with Python (`ipaddress`, `ftplib`, `argparse`, `pandas`, `openpyxl`) and Bash (`showmount`).
-- Designed for network security and administration tasks.
-- Inspired by the need to automate network auditing workflows.
+- Built with Python (`ipaddress`, `ftplib`, `argparse`, `pandas`, `openpyxl`) and Bash (`showmount`, `psql`, `google-chrome`).
+- Designed for network security, auditing, and visualization.
