@@ -43,8 +43,12 @@ A collection of Python and Bash scripts for network scanning, analysis, security
    - Reports connection success/failure with customizable username and port.
 
 10. **screenshot.sh**:
-    - Captures screenshots of web pages at IP:port using headless Chrome.
-    - Saves PNGs in a timestamped directory, with protocol detection (http/https).
+   - Captures screenshots of web pages at IP:port using headless Chrome.
+   - Saves PNGs in a timestamped directory, with protocol detection (http/https).
+
+11. **tunnel_setup.py**:
+   - Installs tunneling tools based on OS/architecture and user choice.
+   - Supports `cloudflared`, `ngrok`, `localtunnel`, `proxychains`, `ssh-dynamic`, `socat`, `chisel`, `bore`, `rathole`, `frp`, and `ligolo-ng`.
 
 ## Features
 
@@ -80,6 +84,7 @@ A collection of Python and Bash scripts for network scanning, analysis, security
     ```bash
     sudo apt install google-chrome-stable
     ```
+- **npm**: Required only for `tunnel_setup.py` when installing `localtunnel`.
 
 ## Installation
 
@@ -158,6 +163,14 @@ echo -e "192.168.1.1\n192.168.1.2" > ips.txt
 ```bash
 echo -e "192.168.1.1:80\n192.168.1.2:443" > urls.txt
 ./screenshot.sh -f urls.txt
+```
+
+### tunnel_setup.py
+```bash
+cd "Tunnel Helper"
+python3 tunnel_setup.py --provider cloudflared
+python3 tunnel_setup.py --provider ssh-dynamic --ssh-user alice --ssh-host jump.example.com --start
+python3 tunnel_setup.py --provider proxychains --write-proxychains-config --proxy-port 1080
 ```
 
 ### Example Workflow
