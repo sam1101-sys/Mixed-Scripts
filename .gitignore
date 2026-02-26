@@ -3,3 +3,7 @@ Hidden/
 
 # Optionally ignore other hidden folders
 .*/
+
+# Python cache
+__pycache__/
+*.pyc
